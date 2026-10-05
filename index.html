@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html,body{margin:0}[hidden]{display:none!important}</style>
+<title>Плавление и кристаллизация 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: lab-notebook screens, one idea per screen; cold blue (solid) → hot orange (liquid) as the subject's own color logic */
+:root{
+  --bg:#F2F6F8; --grid:rgba(14,124,134,.07); --surface:#FFFFFF; --surface2:#E7F0F2;
+  --ink:#13262C; --muted:#53676E; --line:#D0DEE2;
+  --accent:#0E7C86; --accent-ink:#FFFFFF;
+  --cold:#3A8DDE; --hot:#E4572E; --warm:#F2A541;
+  --ok:#1E8C4E; --ok-bg:#E2F4E9; --bad:#C23A3A; --bad-bg:#FBE7E7;
+  --glass:#BFD6DC; --flame:#F2A541;
+  --f-display:"Rubik","Segoe UI",system-ui,sans-serif;
+  --f-body:"PT Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C171B; --grid:rgba(76,196,205,.07); --surface:#132328; --surface2:#1A2F35;
+  --ink:#E1EEF1; --muted:#97AEB4; --line:#284148;
+  --accent:#4CC4CD; --accent-ink:#06191C;
+  --cold:#6FB3F5; --hot:#FF7A50; --warm:#FFC060;
+  --ok:#5BD08B; --ok-bg:#15301F; --bad:#FF7A7A; --bad-bg:#3A1A1E;
+  --glass:#3C5A62; --flame:#FFB347;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C171B; --grid:rgba(76,196,205,.07); --surface:#132328; --surface2:#1A2F35;
+  --ink:#E1EEF1; --muted:#97AEB4; --line:#284148;
+  --accent:#4CC4CD; --accent-ink:#06191C;
+  --cold:#6FB3F5; --hot:#FF7A50; --warm:#FFC060;
+  --ok:#5BD08B; --ok-bg:#15301F; --bad:#FF7A7A; --bad-bg:#3A1A1E;
+  --glass:#3C5A62; --flame:#FFB347;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:clamp(18px,1.1vw + 9px,28px);line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+sup{font-size:.65em}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar{padding:10px clamp(16px,3vw,64px);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.badge{font-family:var(--f-mono);font-size:clamp(13px,.6vw + 8px,20px);font-weight:700;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:.3em .6em;white-space:nowrap}
+.brand b{font-family:var(--f-display);font-weight:700;font-size:clamp(16px,.9vw + 8px,26px)}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.seg button{border:0;background:none;border-radius:999px;padding:.35em .9em;font-weight:700;font-size:clamp(14px,.7vw + 8px,22px);cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.iconbtn{width:clamp(38px,2.6vw + 10px,56px);height:clamp(38px,2.6vw + 10px,56px);border-radius:50%;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center}
+.iconbtn svg{width:55%;height:55%;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round}
+
+.wrap{padding-inline:clamp(16px,3vw,64px);padding-block:0 120px}
+.screen{min-height:calc(100dvh - clamp(150px,10vw + 60px,240px));display:grid;align-content:center;padding-block:28px;animation:rise .45s ease both}
+.screen > *{min-width:0}
+@keyframes rise{from{opacity:.15;transform:translateY(16px)}to{opacity:1;transform:none}}
+.eyebrow{font-family:var(--f-mono);font-size:clamp(13px,.7vw + 8px,22px);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+
+.cover{min-height:calc(100dvh - 70px)}
+.coverin{display:grid;gap:clamp(18px,2vw,40px)}
+.cover h1{font-size:clamp(36px,4.6vw + 14px,104px);font-weight:800;letter-spacing:-.015em}
+.cover h1 .c{color:var(--cold)} .cover h1 .h{color:var(--hot)}
+.lead{font-size:clamp(18px,1.4vw + 8px,34px);color:var(--muted);max-width:52ch}
+.plan{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.plan li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:clamp(12px,1.2vw,24px);font-family:var(--f-display);font-weight:700;font-size:clamp(17px,1.1vw + 8px,30px);display:flex;gap:10px;align-items:center}
+.plan .n{font-family:var(--f-mono);width:1.6em;height:1.6em;border-radius:50%;background:var(--surface2);color:var(--accent);display:grid;place-items:center;font-size:.8em;flex:none}
+.foot{color:var(--muted);font-size:clamp(14px,.6vw + 8px,20px)}
+
+.block{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,3vw,40px);display:grid;gap:clamp(14px,1.4vw,28px);align-content:start;min-width:0;font-size:clamp(19px,1.35vw + 8px,34px);line-height:1.45}
+.block h2{font-size:clamp(26px,2.6vw + 10px,62px);font-weight:700}
+.def{border-left:4px solid var(--accent);padding-left:.6em}
+.def.cold{border-color:var(--cold)} .def.hot{border-color:var(--hot)}
+.ex{color:var(--muted);font-style:italic}
+.aside{background:var(--surface2);border-radius:12px;padding:clamp(8px,1vw,18px);overflow-x:auto;min-width:0}
+.aside svg{display:block;width:100%;height:auto;max-height:58vh;min-width:280px}
+.aside svg text{font-family:var(--f-body);fill:var(--ink)}
+.formula{font-family:var(--f-mono);font-size:clamp(30px,3.4vw + 10px,84px);font-weight:700;text-align:center;padding:.4em;border-radius:12px;background:var(--surface2)}
+.formula small{display:block;font-size:.4em;font-weight:500;color:var(--muted);margin-top:.3em}
+@media (min-width:1000px){
+  .block.split{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:clamp(24px,3vw,72px);align-items:center}
+  .block.split > *{grid-column:1}
+  .block.split > .aside{grid-column:2;grid-row:1 / span 9}
+}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:.35em .6em;border-bottom:1px solid var(--line);text-align:left}
+th{font-family:var(--f-display);font-size:.78em;color:var(--muted);font-weight:700}
+td.n{font-family:var(--f-mono);text-align:right} th.n{text-align:right}
+.ref td,.ref th{font-size:.85em}
+
+.btn{border:0;border-radius:10px;padding:.55em 1.1em;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;font-family:var(--f-display);font-size:clamp(16px,.9vw + 8px,26px)}
+.btn.big{font-size:clamp(19px,1.2vw + 10px,34px);border-radius:12px}
+.btn.ghost{background:var(--surface2);color:var(--ink)}
+.btn.heat{background:var(--hot);color:#fff} .btn.cool{background:var(--cold);color:#fff}
+.btn[aria-pressed="true"]{box-shadow:0 0 0 3px var(--surface),0 0 0 6px var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* lab */
+.lab{display:grid;gap:clamp(14px,1.4vw,24px)}
+.labhead{display:grid;gap:6px}
+.labhead p{color:var(--muted)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px}
+@media (max-width:760px){.stage{grid-template-columns:1fr}}
+.cv{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2)}
+canvas{display:block;width:100%;height:clamp(240px,38vh,520px)}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}
+.ro{background:var(--surface2);border-radius:10px;padding:.5em .7em;display:grid;gap:2px}
+.ro span{font-size:.62em;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.ro b{font-family:var(--f-mono);font-size:1em;font-variant-numeric:tabular-nums}
+.state{display:inline-block;border-radius:999px;padding:.05em .6em;font-family:var(--f-display);font-size:.85em}
+.st-solid{background:var(--cold);color:#fff}.st-liquid{background:var(--hot);color:#fff}.st-mid{background:var(--warm);color:#1b1b1b}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px;align-items:end}
+.ctl{display:grid;gap:4px;min-width:0}
+.ctl label{font-weight:700;font-size:.8em;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ctl output{font-family:var(--f-mono);color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);height:clamp(20px,1.5vw,36px)}
+input[type=number],select{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.3em .5em;font-family:var(--f-mono);font-size:clamp(17px,1vw + 8px,28px);min-width:0}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.note{color:var(--muted);font-size:.7em}
+
+/* calc */
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:18px}
+.field{display:grid;gap:4px}
+.field label{font-weight:700;font-size:.8em}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row input{flex:1 1 120px}
+.solution{font-family:var(--f-mono);font-size:.82em;background:var(--surface2);border-radius:10px;padding:.8em;display:grid;gap:.4em;overflow-wrap:anywhere}
+.solution .ans{font-weight:700;color:var(--accent);font-size:1.1em}
+.err{color:var(--bad)}
+
+/* quiz */
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.progress{flex:1 1 200px;height:clamp(8px,.6vw,14px);background:var(--surface2);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.qnum{font-family:var(--f-mono);font-weight:700;color:var(--muted);font-size:.75em}
+.qtext{font-size:clamp(22px,1.9vw + 8px,48px);font-family:var(--f-display);font-weight:500;line-height:1.3}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:.55em .8em;cursor:pointer;display:flex;gap:12px;align-items:flex-start}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .k{font-family:var(--f-mono);font-weight:700;color:var(--accent);flex:none}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)} .opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.feedback{border-radius:10px;padding:.6em .8em}
+.feedback.good{background:var(--ok-bg)} .feedback.bad{background:var(--bad-bg)}
+.feedback b{display:block}
+.score{font-size:clamp(46px,6vw,140px);font-family:var(--f-display);font-weight:800;color:var(--accent)}
+
+.stepper{position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stepin{padding:10px clamp(16px,3vw,64px);display:flex;align-items:center;gap:12px}
+.where{flex:1;display:grid;justify-items:center;gap:6px;min-width:0}
+#secName{font-family:var(--f-display);font-weight:700;font-size:clamp(14px,.8vw + 8px,24px);color:var(--muted);text-align:center}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dots button{width:clamp(10px,.7vw,16px);height:clamp(10px,.7vw,16px);border-radius:50%;border:0;padding:0;background:var(--line);cursor:pointer}
+.dots button[aria-current="step"]{background:var(--accent);width:clamp(26px,2vw,44px);border-radius:99px}
+@media (max-width:480px){.stepin .btn{padding:.5em .7em;font-size:14px}}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* problem question + functional literacy */
+.prob{display:grid;gap:clamp(14px,1.6vw,30px)}
+.prob .tag{display:inline-flex;align-items:center;gap:.4em;font-family:var(--f-mono);font-weight:700;font-size:clamp(13px,.7vw + 8px,22px);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.prob .bigq{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,2.8vw + 10px,64px);line-height:1.2;text-wrap:balance}
+.prob .sit{color:var(--muted)}
+.hyps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:10px}
+.hyp{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:.6em .8em;cursor:pointer;display:flex;gap:.6em;align-items:flex-start;font-size:inherit}
+.hyp .k{font-family:var(--f-mono);font-weight:700;color:var(--accent);flex:none}
+.hyp[aria-pressed="true"]{border-color:var(--accent);background:var(--surface2)}
+.reveal{border-radius:12px;padding:.8em 1em;background:var(--ok-bg);border-left:5px solid var(--ok)}
+.muted{color:var(--muted)}
+.fg{display:grid;gap:clamp(14px,1.6vw,28px)}
+.ctx{background:var(--surface2);border-radius:12px;padding:clamp(12px,1.4vw,26px);display:grid;gap:.6em}
+.ctx table{font-size:.9em}
+.tasks{display:grid;gap:clamp(12px,1.4vw,24px)}
+.task{border:1.5px solid var(--line);border-radius:12px;padding:clamp(12px,1.4vw,24px);display:grid;gap:.6em}
+.task .tn{font-family:var(--f-mono);font-weight:700;color:var(--accent);font-size:.75em;text-transform:uppercase;letter-spacing:.06em}
+.task .tq{font-weight:700}
+.ansrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ansrow input{width:min(100%,220px);border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.3em .5em;font-family:var(--f-mono);font-size:inherit}
+.ansrow .unit{font-family:var(--f-mono);font-weight:700}
+.task textarea{width:100%;min-height:4.5em;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:.5em;font:inherit;color:inherit;resize:vertical}
+.fb{border-radius:10px;padding:.5em .8em}
+.fb.good{background:var(--ok-bg)} .fb.bad{background:var(--bad-bg)}
+.fb.info{background:var(--surface2)}
+.task .opt{font-size:inherit}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="bar">
+    <div class="brand"><span class="badge">8 · ФИЗ</span><b data-i18n="brand"></b></div>
+    <div class="seg" role="group" aria-label="Язык / Тіл">
+      <button id="lang-ru" aria-pressed="true">РУС</button>
+      <button id="lang-kz" aria-pressed="false">ҚАЗ</button>
+    </div>
+    <button class="iconbtn" id="themeBtn" aria-label="Тема"></button>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+  <!-- 0 cover -->
+  <section class="screen cover" data-step data-sec="cover">
+    <div class="coverin">
+      <span class="eyebrow" data-i18n="eyebrow"></span>
+      <h1 id="coverTitle"></h1>
+      <p class="lead" data-i18n="lead"></p>
+      <ol class="plan">
+        <li><span class="n">1</span><span data-i18n="sec0"></span></li>
+        <li><span class="n">2</span><span data-i18n="sec1"></span></li>
+        <li><span class="n">3</span><span data-i18n="sec2"></span></li>
+        <li><span class="n">4</span><span data-i18n="sec3"></span></li>
+        <li><span class="n">5</span><span data-i18n="secFG"></span></li>
+        <li><span class="n">6</span><span data-i18n="sec4"></span></li>
+      </ol>
+      <div><button class="btn big" id="startBtn" data-i18n="start"></button></div>
+      <p class="foot" data-i18n="foot"></p>
+    </div>
+  </section>
+
+  <section class="screen" id="p-prob" data-step data-sec="sec0" hidden>
+    <article class="block prob" id="probBox"></article>
+  </section>
+
+
+  <!-- 1 -->
+  <section class="screen" data-step data-sec="sec1">
+    <article class="block split">
+      <span class="eyebrow" data-i18n="sec1"></span>
+      <h2 data-i18n="s1h"></h2>
+      <p class="def hot" data-i18n="s1a"></p>
+      <p class="def cold" data-i18n="s1b"></p>
+      <p data-i18n="s1c"></p>
+      <p class="ex" data-i18n="s1ex"></p>
+      <div class="aside">
+        <svg viewBox="0 0 420 230" role="img">
+          <rect x="20" y="70" width="120" height="90" rx="12" style="fill:var(--cold)"/>
+          <rect x="280" y="70" width="120" height="90" rx="12" style="fill:var(--hot)"/>
+          <g style="fill:#fff">
+            <circle cx="50" cy="100" r="7"/><circle cx="80" cy="100" r="7"/><circle cx="110" cy="100" r="7"/>
+            <circle cx="50" cy="130" r="7"/><circle cx="80" cy="130" r="7"/><circle cx="110" cy="130" r="7"/>
+            <circle cx="300" cy="96" r="7"/><circle cx="337" cy="108" r="7"/><circle cx="378" cy="94" r="7"/>
+            <circle cx="314" cy="138" r="7"/><circle cx="355" cy="134" r="7"/><circle cx="384" cy="140" r="7"/>
+          </g>
+          <text x="80" y="188" text-anchor="middle" style="font-weight:700;font-size:18px" data-i18n="svgSolid"></text>
+          <text x="340" y="188" text-anchor="middle" style="font-weight:700;font-size:18px" data-i18n="svgLiquid"></text>
+          <path d="M150 88 Q210 40 270 88" fill="none" style="stroke:var(--hot)" stroke-width="4"/>
+          <polygon points="272,92 258,86 268,76" style="fill:var(--hot)"/>
+          <text x="210" y="38" text-anchor="middle" style="fill:var(--hot);font-weight:700;font-size:16px" data-i18n="svgMelt"></text>
+          <path d="M270 142 Q210 190 150 142" fill="none" style="stroke:var(--cold)" stroke-width="4"/>
+          <polygon points="148,138 162,144 152,154" style="fill:var(--cold)"/>
+          <text x="210" y="216" text-anchor="middle" style="fill:var(--cold);font-weight:700;font-size:16px" data-i18n="svgCryst"></text>
+        </svg>
+      </div>
+    </article>
+  </section>
+
+  <!-- 2 -->
+  <section class="screen" data-step data-sec="sec1">
+    <article class="block split">
+      <span class="eyebrow" data-i18n="sec1"></span>
+      <h2 data-i18n="s2h"></h2>
+      <p class="def" data-i18n="s2a"></p>
+      <p data-i18n="s2b"></p>
+      <p class="ex" data-i18n="s2c"></p>
+      <div class="aside"><table id="tmTable"></table></div>
+    </article>
+  </section>
+
+  <!-- 3 -->
+  <section class="screen" data-step data-sec="sec1">
+    <article class="block split">
+      <span class="eyebrow" data-i18n="sec1"></span>
+      <h2 data-i18n="s3h"></h2>
+      <p data-i18n="s3a"></p>
+      <p class="def" data-i18n="s3b"></p>
+      <p data-i18n="s3c"></p>
+      <div class="aside">
+        <svg viewBox="0 0 420 220" role="img">
+          <rect x="14" y="20" width="180" height="150" rx="10" fill="none" style="stroke:var(--muted)" stroke-width="2"/>
+          <g style="stroke:var(--line)" stroke-width="2">
+            <line x1="44" y1="50" x2="164" y2="50"/><line x1="44" y1="80" x2="164" y2="80"/><line x1="44" y1="110" x2="164" y2="110"/><line x1="44" y1="140" x2="164" y2="140"/>
+            <line x1="44" y1="50" x2="44" y2="140"/><line x1="74" y1="50" x2="74" y2="140"/><line x1="104" y1="50" x2="104" y2="140"/><line x1="134" y1="50" x2="134" y2="140"/><line x1="164" y1="50" x2="164" y2="140"/>
+          </g>
+          <g id="latticeDots" style="fill:var(--cold)"></g>
+          <rect x="226" y="20" width="180" height="150" rx="10" fill="none" style="stroke:var(--muted)" stroke-width="2"/>
+          <g style="fill:var(--hot)">
+            <circle cx="250" cy="60" r="9"/><circle cx="292" cy="44" r="9"/><circle cx="336" cy="70" r="9"/><circle cx="380" cy="48" r="9"/>
+            <circle cx="262" cy="104" r="9"/><circle cx="306" cy="92" r="9"/><circle cx="352" cy="112" r="9"/><circle cx="388" cy="94" r="9"/>
+            <circle cx="246" cy="146" r="9"/><circle cx="288" cy="138" r="9"/><circle cx="330" cy="150" r="9"/><circle cx="374" cy="140" r="9"/>
+            <circle cx="300" cy="122" r="9"/><circle cx="364" cy="80" r="9"/><circle cx="276" cy="78" r="9"/>
+          </g>
+          <text x="104" y="200" text-anchor="middle" style="font-weight:700;font-size:16px" data-i18n="svgOrder"></text>
+          <text x="316" y="200" text-anchor="middle" style="font-weight:700;font-size:16px" data-i18n="svgDisorder"></text>
+        </svg>
+      </div>
+    </article>
+  </section>
+
+  <!-- 4 -->
+  <section class="screen" data-step data-sec="sec1">
+    <article class="block split">
+      <span class="eyebrow" data-i18n="sec1"></span>
+      <h2 data-i18n="s4h"></h2>
+      <p class="def" data-i18n="s4a"></p>
+      <div class="formula">Q = λ · m<small>λ = Q / m &nbsp;·&nbsp; m = Q / λ</small></div>
+      <p data-i18n-html="s4b"></p>
+      <p class="ex" data-i18n-html="s4ex"></p>
+      <div class="aside"><table id="lamTable"></table></div>
+    </article>
+  </section>
+
+  <!-- 5 -->
+  <section class="screen" data-step data-sec="sec1">
+    <article class="block split">
+      <span class="eyebrow" data-i18n="sec1"></span>
+      <h2 data-i18n="s5h"></h2>
+      <p data-i18n-html="s5a"></p>
+      <p data-i18n-html="s5b"></p>
+      <p data-i18n-html="s5c"></p>
+      <p class="ex" data-i18n="s5d"></p>
+      <div class="aside">
+        <svg viewBox="0 0 440 280" role="img">
+          <g style="stroke:var(--line)" stroke-width="1">
+            <line x1="60" y1="60" x2="420" y2="60"/><line x1="60" y1="110" x2="420" y2="110"/><line x1="60" y1="210" x2="420" y2="210"/>
+          </g>
+          <line x1="60" y1="240" x2="60" y2="20" style="stroke:var(--ink)" stroke-width="2"/>
+          <polygon points="60,12 54,26 66,26" style="fill:var(--ink)"/>
+          <line x1="60" y1="160" x2="424" y2="160" style="stroke:var(--ink)" stroke-width="2"/>
+          <polygon points="432,160 418,154 418,166" style="fill:var(--ink)"/>
+          <text x="66" y="22" style="font-size:15px;font-weight:700">t, °C</text>
+          <text x="398" y="184" style="font-size:15px;font-weight:700" data-i18n="svgTime"></text>
+          <text x="52" y="65" text-anchor="end" style="font-size:14px">40</text>
+          <text x="52" y="115" text-anchor="end" style="font-size:14px">20</text>
+          <text x="52" y="165" text-anchor="end" style="font-size:14px">0</text>
+          <text x="52" y="215" text-anchor="end" style="font-size:14px">−20</text>
+          <polyline points="70,210 130,160" fill="none" style="stroke:var(--cold)" stroke-width="5" stroke-linecap="round"/>
+          <polyline points="130,160 300,160" fill="none" style="stroke:var(--warm)" stroke-width="5" stroke-linecap="round"/>
+          <polyline points="300,160 410,60" fill="none" style="stroke:var(--hot)" stroke-width="5" stroke-linecap="round"/>
+          <g style="fill:var(--ink);font-weight:700;font-size:16px">
+            <text x="62" y="232">A</text><text x="122" y="150">B</text><text x="300" y="150">C</text><text x="412" y="54">D</text>
+          </g>
+          <text x="96" y="252" style="fill:var(--cold);font-size:14px;font-weight:700" data-i18n="svgIce"></text>
+          <text x="215" y="186" text-anchor="middle" style="fill:var(--warm);font-size:14px;font-weight:700" data-i18n="svgIceWater"></text>
+          <text x="352" y="128" style="fill:var(--hot);font-size:14px;font-weight:700" data-i18n="svgWater"></text>
+        </svg>
+      </div>
+    </article>
+  </section>
+
+  <!-- 6 lab -->
+  <section class="screen" id="p-sim" data-step data-sec="sec2">
+    <div class="block lab">
+      <div class="labhead">
+        <span class="eyebrow" data-i18n="sec2"></span>
+        <h2 data-i18n="labH"></h2>
+        <p data-i18n="labIntro"></p>
+      </div>
+      <div class="stage">
+        <div class="cv"><canvas id="beaker"></canvas></div>
+        <div class="cv"><canvas id="graph"></canvas></div>
+      </div>
+      <div class="readouts">
+        <div class="ro"><span data-i18n="roT"></span><b id="roT"></b></div>
+        <div class="ro"><span data-i18n="roQ"></span><b id="roQ"></b></div>
+        <div class="ro"><span data-i18n="roF"></span><b id="roF"></b></div>
+        <div class="ro"><span data-i18n="roS"></span><b id="roS"></b></div>
+      </div>
+      <div class="controls">
+        <div class="ctl"><label for="subst" data-i18n="cSub"></label><select id="subst"></select></div>
+        <div class="ctl"><label for="mass"><span data-i18n="cMass"></span><output id="massOut"></output></label><input type="range" id="mass" min="0.1" max="1" step="0.1" value="0.2"></div>
+        <div class="ctl"><label for="power"><span data-i18n="cPow"></span><output id="powOut"></output></label><input type="range" id="power" min="100" max="1000" step="50" value="500"></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn heat" id="bHeat" data-i18n="bHeat"></button>
+        <button class="btn cool" id="bCool" data-i18n="bCool"></button>
+        <button class="btn ghost" id="bPause" data-i18n="bPause"></button>
+        <button class="btn ghost" id="bReset" data-i18n="bReset"></button>
+      </div>
+      <p class="note" id="labNote"></p>
+    </div>
+  </section>
+
+  <!-- 7 calc -->
+  <section class="screen" id="p-calc" data-step data-sec="sec3">
+    <div class="calc">
+      <article class="block">
+        <span class="eyebrow" data-i18n="sec3"></span>
+        <h2 data-i18n="calcH"></h2>
+        <div class="field"><label for="cMode" data-i18n="cWhat"></label>
+          <select id="cMode"><option value="melt" data-i18n="mMelt"></option><option value="heatmelt" data-i18n="mHeatMelt"></option><option value="mass" data-i18n="mMass"></option></select></div>
+        <div class="field"><label for="cSub" data-i18n="cSub"></label><select id="cSub"></select></div>
+        <div class="field" id="fM"><label for="cM" data-i18n="fMass"></label><div class="row"><input type="number" id="cM" value="2" min="0" step="any"><select id="cMu"><option value="1" data-u="kg"></option><option value="0.001" data-u="g"></option></select></div></div>
+        <div class="field" id="fT"><label for="cT" data-i18n="fT0"></label><div class="row"><input type="number" id="cT" value="-10" step="any"><select disabled><option>°C</option></select></div></div>
+        <div class="field" id="fQ"><label for="cQ" data-i18n="fQ"></label><div class="row"><input type="number" id="cQ" value="680" min="0" step="any"><select id="cQu"><option value="1" data-u="J"></option><option value="1000" data-u="kJ" selected></option><option value="1000000" data-u="MJ"></option></select></div></div>
+        <div class="solution" id="solution"></div>
+      </article>
+      <article class="block">
+        <h2 data-i18n="refH"></h2>
+        <div style="overflow-x:auto"><table class="ref" id="refTable"></table></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 8 quiz -->
+  <section class="screen" id="p-fg" data-step data-sec="secFG" hidden>
+    <article class="block fg" id="fgBox"></article>
+  </section>
+
+  <section class="screen" id="p-quiz" data-step data-sec="sec4">
+    <div class="block" id="quizBox"></div>
+  </section>
+</main>
+</div>
+
+<nav class="stepper" id="stepper" hidden>
+  <div class="stepin">
+    <button class="btn ghost" id="prevBtn"></button>
+    <div class="where"><span id="secName"></span><div class="dots" id="dots"></div></div>
+    <button class="btn" id="nextBtn"></button>
+  </div>
+</nav>
+
+<script>
+/* ---------- data ---------- */
+// tm °C, lam J/kg, c (solid) J/(kg·°C), c2 (liquid), sim start/end temps
+const SUB = [
+ {id:"ice",  ru:"Лёд",       kz:"Мұз",      tm:0,    lam:3.4e5,  c:2100, c2:4200, t0:-20, t1:40,   sim:true},
+ {id:"naph", ru:"Нафталин",  kz:"Нафталин", tm:80,   lam:1.5e5,  c:1300, c2:1700, t0:40,  t1:120,  sim:true},
+ {id:"tin",  ru:"Олово",     kz:"Қалайы",   tm:232,  lam:0.59e5, c:230,  c2:250,  t0:150, t1:320,  sim:true},
+ {id:"lead", ru:"Свинец",    kz:"Қорғасын", tm:327,  lam:0.25e5, c:140,  c2:150,  t0:250, t1:420,  sim:true},
+ {id:"al",   ru:"Алюминий",  kz:"Алюминий", tm:660,  lam:3.9e5,  c:920,  c2:1080, t0:560, t1:760,  sim:true},
+ {id:"cu",   ru:"Медь",      kz:"Мыс",      tm:1085, lam:2.1e5,  c:400,  c2:500,  t0:985, t1:1185, sim:false},
+ {id:"au",   ru:"Золото",    kz:"Алтын",    tm:1064, lam:0.67e5, c:130,  c2:150,  t0:964, t1:1164, sim:false},
+ {id:"steel",ru:"Сталь",     kz:"Болат",    tm:1400, lam:0.84e5, c:500,  c2:700,  t0:1300,t1:1500, sim:false},
+ {id:"fe",   ru:"Железо",    kz:"Темір",    tm:1539, lam:2.7e5,  c:460,  c2:820,  t0:1439,t1:1639, sim:false},
+ {id:"hg",   ru:"Ртуть",     kz:"Сынап",    tm:-39,  lam:0.12e5, c:140,  c2:140,  t0:-60, t1:0,    sim:false},
+ {id:"w",    ru:"Вольфрам",  kz:"Вольфрам", tm:3410, lam:null,   c:130,  c2:null, sim:false}
+];
+
+const T = {
+ru:{
+ brand:"Плавление и кристаллизация", eyebrow:"Физика · 8 класс · интерактивный урок",
+ titleHTML:'<span class="h">Плавление</span> и <span class="c">кристаллизация</span> твёрдых тел',
+ lead:"Температура плавления. Удельная теплота плавления. Прочитайте теорию, повторите опыт в виртуальной лаборатории, решите задачи и пройдите тест.",
+ sec1:"Теория", sec2:"Лаборатория", sec3:"Задачи", sec4:"Тест", start:"Начать урок →", back:"← Назад", fwd:"Далее →", stepOf:"шаг",
+ foot:"Физика, 8 класс. Тема: «Плавление и кристаллизация твёрдых тел. Температура плавления. Удельная теплота плавления».",
+ s1h:"Плавление и кристаллизация",
+ s1a:"Плавление — переход вещества из твёрдого состояния в жидкое.",
+ s1b:"Кристаллизация (отвердевание) — переход вещества из жидкого состояния в твёрдое.",
+ s1c:"Чтобы тело расплавилось, ему нужно сообщить энергию — количество теплоты Q. При кристаллизации тело, наоборот, отдаёт энергию окружающим телам.",
+ s1ex:"Примеры: весной тают снег и лёд, на заводе плавят металл для отливок; зимой замерзает вода в лужах, расплавленный воск застывает на свече.",
+ svgSolid:"твёрдое", svgLiquid:"жидкое", svgMelt:"плавление (+Q)", svgCryst:"кристаллизация (−Q)",
+ s2h:"Температура плавления",
+ s2a:"Температуру, при которой вещество плавится, называют температурой плавления.",
+ s2b:"Кристаллические тела плавятся и отвердевают при одной и той же температуре: температура плавления равна температуре кристаллизации. Пока идёт плавление, температура тела не меняется.",
+ s2c:"Аморфные тела (стекло, смола, пластилин, воск) не имеют определённой температуры плавления: при нагревании они постепенно размягчаются.",
+ tmSub:"t<sub>пл</sub>", thSub:"Вещество", thTm:"t<sub>пл</sub>, °C", thLam:"λ, Дж/кг", thC:"c, Дж/(кг·°C)",
+ s3h:"Почему при плавлении температура не меняется",
+ s3a:"В кристалле частицы расположены в строгом порядке — образуют кристаллическую решётку — и колеблются около своих положений. При нагревании они колеблются всё быстрее, и температура растёт.",
+ s3b:"При температуре плавления вся подводимая энергия идёт на разрушение кристаллической решётки. Поэтому температура не меняется, пока всё тело не расплавится.",
+ s3c:"При кристаллизации частицы снова выстраиваются в решётку и отдают энергию: выделяется столько же теплоты, сколько поглощалось при плавлении.",
+ svgOrder:"твёрдое тело: порядок", svgDisorder:"жидкость: беспорядок",
+ s4h:"Удельная теплота плавления",
+ s4a:"Удельная теплота плавления λ (лямбда) показывает, какое количество теплоты нужно сообщить 1 кг кристаллического вещества, взятого при температуре плавления, чтобы полностью превратить его в жидкость.",
+ s4b:"Единица в СИ — <b>джоуль на килограмм [Дж/кг]</b>. При кристаллизации выделяется такое же количество теплоты: Q = −λm.",
+ s4ex:"Пример: λ льда = 3,4·10<sup>5</sup> Дж/кг. Чтобы расплавить 1 кг льда при 0 °C, нужно 340 000 Дж.",
+ s5h:"График нагревания и плавления льда",
+ s5a:"<b>AB</b> — лёд нагревается от −20 °C до 0 °C: Q = c<sub>льда</sub>·m·Δt.",
+ s5b:"<b>BC</b> — лёд плавится при 0 °C, температура не меняется: Q = λ·m.",
+ s5c:"<b>CD</b> — вода нагревается: Q = c<sub>воды</sub>·m·Δt.",
+ s5d:"При охлаждении график проходится в обратном порядке: горизонтальный участок — кристаллизация, вода отвердевает при 0 °C.",
+ svgTime:"τ, мин", svgIce:"лёд", svgIceWater:"лёд + вода", svgWater:"вода",
+ labH:"Нагреваем и охлаждаем вещество",
+ labIntro:"Выберите вещество и включите нагреватель. Следите за графиком: горизонтальный участок — плавление. Потом включите охлаждение и найдите кристаллизацию.",
+ roT:"Температура", roQ:"Получено теплоты Q", roF:"Расплавилось", roS:"Состояние",
+ cSub:"Вещество", cMass:"Масса", cPow:"Мощность нагревателя / охлаждения",
+ bHeat:"Нагревать", bCool:"Охлаждать", bPause:"Пауза", bReset:"Сначала",
+ stSolid:"твёрдое", stMelting:"плавится", stLiquid:"жидкое", stCryst:"кристаллизуется", stMix:"твёрдое + жидкое",
+ graphY:"t, °C", graphX:"τ, с", tmLbl:"t пл",
+ note:(lm,tm)=>`На плавление нужно Q = λm = ${lm}. Температура плавления ${tm} °C. Время в симуляции ускорено.`,
+ calcH:"Калькулятор задач", cWhat:"Что вычислить?",
+ mMelt:"Q для плавления: Q = λm", mHeatMelt:"Q для нагревания и плавления: Q = cm(t пл − t) + λm", mMass:"Массу: m = Q / λ",
+ fMass:"Масса m", fT0:"Начальная температура t", fQ:"Количество теплоты Q",
+ given:"Дано:", si:"СИ:", sol:"Решение:", ans:"Ответ:", errIn:"Введите положительные числа во все поля.", errT:"Начальная температура должна быть ниже температуры плавления.", noLam:"Для этого вещества нет табличного λ — выберите другое.",
+ refH:"Справочные данные",
+ u:{kg:"кг",g:"г",J:"Дж",kJ:"кДж",MJ:"МДж"},
+ qOf:"Вопрос", next:"Следующий вопрос →", finish:"Показать результат", right:"Верно!", wrong:"Неверно.", res:"Результат", of:"из", again:"Пройти заново",
+ grade:(s,n)=> s>=n-1?"Отлично! Тема усвоена.": s>=n*0.6?"Хорошо. Повторите вопросы, где были ошибки.":"Перечитайте теорию и попробуйте ещё раз."
+},
+kz:{
+ brand:"Балқу және кристалдану", eyebrow:"Физика · 8 сынып · интерактивті сабақ",
+ titleHTML:'Қатты денелердің <span class="h">балқуы</span> және <span class="c">кристалдануы</span>',
+ lead:"Балқу температурасы. Меншікті балқу жылуы. Теорияны оқып, тәжірибені виртуалды зертханада қайталаңыз, есептер шығарып, тест тапсырыңыз.",
+ sec1:"Теория", sec2:"Зертхана", sec3:"Есептер", sec4:"Тест", start:"Сабақты бастау →", back:"← Артқа", fwd:"Келесі →", stepOf:"қадам",
+ foot:"Физика, 8 сынып. Тақырып: «Қатты денелердің балқуы және кристалдануы. Балқу температурасы. Меншікті балқу жылуы».",
+ s1h:"Балқу және кристалдану",
+ s1a:"Балқу — заттың қатты күйден сұйық күйге өтуі.",
+ s1b:"Кристалдану (қатаю) — заттың сұйық күйден қатты күйге өтуі.",
+ s1c:"Дене балқу үшін оған энергия — Q жылу мөлшерін беру керек. Кристалданғанда, керісінше, дене қоршаған денелерге энергия береді.",
+ s1ex:"Мысалдар: көктемде қар мен мұз ериді, зауытта құйма жасау үшін металл балқытады; қыста шалшықтағы су қатады, балқыған балауыз шамның бойында қатып қалады.",
+ svgSolid:"қатты", svgLiquid:"сұйық", svgMelt:"балқу (+Q)", svgCryst:"кристалдану (−Q)",
+ s2h:"Балқу температурасы",
+ s2a:"Зат балқитын температураны балқу температурасы деп атайды.",
+ s2b:"Кристалдық денелер бірдей температурада балқиды және қатаяды: балқу температурасы кристалдану температурасына тең. Балқу жүріп жатқанда дененің температурасы өзгермейді.",
+ s2c:"Аморф денелердің (шыны, шайыр, пластилин, балауыз) белгілі бір балқу температурасы болмайды: қыздырғанда олар біртіндеп жұмсарады.",
+ tmSub:"t<sub>балқу</sub>", thSub:"Зат", thTm:"t<sub>балқу</sub>, °C", thLam:"λ, Дж/кг", thC:"c, Дж/(кг·°C)",
+ s3h:"Балқу кезінде температура неге өзгермейді",
+ s3a:"Кристалда бөлшектер қатаң ретпен орналасып, кристалдық тор түзеді және өз орындарының маңында тербеледі. Қыздырғанда олар жылдамырақ тербеледі, температура артады.",
+ s3b:"Балқу температурасында берілген барлық энергия кристалдық торды бұзуға жұмсалады. Сондықтан бүкіл дене балқып біткенше температура өзгермейді.",
+ s3c:"Кристалданғанда бөлшектер қайтадан торға тізіліп, энергия береді: балқу кезінде қанша жылу жұтылса, сонша жылу бөлінеді.",
+ svgOrder:"қатты дене: реттілік", svgDisorder:"сұйық: ретсіздік",
+ s4h:"Меншікті балқу жылуы",
+ s4a:"Меншікті балқу жылуы λ (ламбда) балқу температурасында алынған 1 кг кристалдық затты толығымен сұйыққа айналдыру үшін оған қанша жылу мөлшерін беру керектігін көрсетеді.",
+ s4b:"ХБЖ-дағы бірлігі — <b>джоуль бөлінген килограмм [Дж/кг]</b>. Кристалданғанда дәл сондай жылу мөлшері бөлінеді: Q = −λm.",
+ s4ex:"Мысалы: мұздың λ = 3,4·10<sup>5</sup> Дж/кг. 0 °C-тағы 1 кг мұзды балқыту үшін 340 000 Дж қажет.",
+ s5h:"Мұзды қыздыру және балқыту графигі",
+ s5a:"<b>AB</b> — мұз −20 °C-тан 0 °C-қа дейін қызады: Q = c<sub>мұз</sub>·m·Δt.",
+ s5b:"<b>BC</b> — мұз 0 °C-та балқиды, температура өзгермейді: Q = λ·m.",
+ s5c:"<b>CD</b> — су қызады: Q = c<sub>су</sub>·m·Δt.",
+ s5d:"Суытқанда график кері ретпен жүреді: горизонталь бөлік — кристалдану, су 0 °C-та қатаяды.",
+ svgTime:"τ, мин", svgIce:"мұз", svgIceWater:"мұз + су", svgWater:"су",
+ labH:"Затты қыздырамыз және суытамыз",
+ labIntro:"Затты таңдап, қыздырғышты қосыңыз. Графикті бақылаңыз: горизонталь бөлік — балқу. Содан кейін суытуды қосып, кристалдануды табыңыз.",
+ roT:"Температура", roQ:"Алынған жылу Q", roF:"Балқыған бөлігі", roS:"Күйі",
+ cSub:"Зат", cMass:"Масса", cPow:"Қыздырғыштың / суытқыштың қуаты",
+ bHeat:"Қыздыру", bCool:"Суыту", bPause:"Кідірту", bReset:"Басынан",
+ stSolid:"қатты", stMelting:"балқып жатыр", stLiquid:"сұйық", stCryst:"кристалданып жатыр", stMix:"қатты + сұйық",
+ graphY:"t, °C", graphX:"τ, с", tmLbl:"t балқу",
+ note:(lm,tm)=>`Балқуға Q = λm = ${lm} қажет. Балқу температурасы ${tm} °C. Симуляцияда уақыт жеделдетілген.`,
+ calcH:"Есеп шығаратын есептегіш", cWhat:"Нені есептейміз?",
+ mMelt:"Балқуға қажет Q: Q = λm", mHeatMelt:"Қыздыруға және балқытуға қажет Q: Q = cm(t балқу − t) + λm", mMass:"Массаны: m = Q / λ",
+ fMass:"Масса m", fT0:"Бастапқы температура t", fQ:"Жылу мөлшері Q",
+ given:"Берілгені:", si:"ХБЖ:", sol:"Шешуі:", ans:"Жауабы:", errIn:"Барлық өрістерге оң сандар енгізіңіз.", errT:"Бастапқы температура балқу температурасынан төмен болуы керек.", noLam:"Бұл зат үшін кестеде λ жоқ — басқа затты таңдаңыз.",
+ refH:"Анықтамалық деректер",
+ u:{kg:"кг",g:"г",J:"Дж",kJ:"кДж",MJ:"МДж"},
+ qOf:"Сұрақ", next:"Келесі сұрақ →", finish:"Нәтижені көрсету", right:"Дұрыс!", wrong:"Қате.", res:"Нәтиже", of:"/", again:"Қайта тапсыру",
+ grade:(s,n)=> s>=n-1?"Өте жақсы! Тақырып меңгерілді.": s>=n*0.6?"Жақсы. Қате жауап берген сұрақтарды қайталаңыз.":"Теорияны қайта оқып, тағы бір рет көріңіз."
+}};
+
+const Q = [
+ {a:0, ru:["Плавлением называют переход вещества…",["из твёрдого состояния в жидкое","из жидкого состояния в твёрдое","из жидкого состояния в газообразное","из газообразного состояния в жидкое"],"Плавление: твёрдое → жидкое. Обратный процесс — кристаллизация."],
+       kz:["Балқу деп заттың … өтуін айтады.",["қатты күйден сұйық күйге","сұйық күйден қатты күйге","сұйық күйден газ күйіне","газ күйінен сұйық күйге"],"Балқу: қатты → сұйық. Кері процесс — кристалдану."]},
+ {a:2, ru:["Как меняется температура кристаллического тела во время плавления?",["Растёт","Уменьшается","Не меняется","Сначала растёт, потом падает"],"Вся энергия идёт на разрушение кристаллической решётки, поэтому температура постоянна."],
+       kz:["Балқу кезінде кристалдық дененің температурасы қалай өзгереді?",["Артады","Кемиді","Өзгермейді","Алдымен артып, сосын кемиді"],"Барлық энергия кристалдық торды бұзуға жұмсалады, сондықтан температура тұрақты."]},
+ {a:2, ru:["Какое из тел не имеет определённой температуры плавления?",["Лёд","Олово","Стекло","Медь"],"Стекло — аморфное тело: при нагревании оно постепенно размягчается."],
+       kz:["Қай дененің белгілі бір балқу температурасы болмайды?",["Мұз","Қалайы","Шыны","Мыс"],"Шыны — аморф дене: қыздырғанда ол біртіндеп жұмсарады."]},
+ {a:0, ru:["Удельная теплота плавления льда 3,4·10⁵ Дж/кг. Что это означает?",["Чтобы расплавить 1 кг льда при 0 °C, нужно 3,4·10⁵ Дж","Чтобы нагреть 1 кг льда на 1 °C, нужно 3,4·10⁵ Дж","Лёд плавится при 3,4·10⁵ °C","1 кг льда при плавлении выделяет 3,4·10⁵ Дж"],"λ — количество теплоты для плавления 1 кг вещества, взятого при температуре плавления."],
+       kz:["Мұздың меншікті балқу жылуы 3,4·10⁵ Дж/кг. Бұл нені білдіреді?",["0 °C-тағы 1 кг мұзды балқыту үшін 3,4·10⁵ Дж қажет","1 кг мұзды 1 °C-қа қыздыру үшін 3,4·10⁵ Дж қажет","Мұз 3,4·10⁵ °C-та балқиды","1 кг мұз балқығанда 3,4·10⁵ Дж бөледі"],"λ — балқу температурасында алынған 1 кг затты балқытуға қажет жылу мөлшері."]},
+ {a:2, ru:["Сколько теплоты нужно, чтобы расплавить 2 кг льда, взятого при 0 °C?",["1,7·10⁵ Дж","3,4·10⁵ Дж","6,8·10⁵ Дж","6,8·10³ Дж"],"Q = λm = 3,4·10⁵ Дж/кг · 2 кг = 6,8·10⁵ Дж."],
+       kz:["0 °C-та алынған 2 кг мұзды балқыту үшін қанша жылу қажет?",["1,7·10⁵ Дж","3,4·10⁵ Дж","6,8·10⁵ Дж","6,8·10³ Дж"],"Q = λm = 3,4·10⁵ Дж/кг · 2 кг = 6,8·10⁵ Дж."]},
+ {a:1, ru:["Какова единица удельной теплоты плавления в СИ?",["Дж","Дж/кг","Дж/(кг·°C)","Вт"],"λ = Q / m, поэтому [λ] = Дж/кг."],
+       kz:["ХБЖ-дағы меншікті балқу жылуының бірлігі қандай?",["Дж","Дж/кг","Дж/(кг·°C)","Вт"],"λ = Q / m, сондықтан [λ] = Дж/кг."]},
+ {a:1, ru:["Что происходит с энергией при кристаллизации вещества?",["Вещество поглощает энергию","Вещество выделяет энергию","Энергия не меняется","Энергия исчезает"],"При кристаллизации выделяется столько же теплоты, сколько поглощалось при плавлении: Q = λm."],
+       kz:["Зат кристалданғанда оның энергиясына не болады?",["Зат энергия жұтады","Зат энергия бөледі","Энергия өзгермейді","Энергия жоғалады"],"Кристалданғанда балқу кезінде жұтылған жылу мөлшеріндей жылу бөлінеді: Q = λm."]},
+ {a:0, ru:["Можно ли расплавить свинец в алюминиевой ложке?",["Да: алюминий плавится при 660 °C, а свинец — при 327 °C","Нет: алюминий расплавится раньше","Нет: свинец вообще не плавится","Да, но только если ложка холодная"],"Температура плавления алюминия выше, чем у свинца, поэтому ложка останется твёрдой."],
+       kz:["Қорғасынды алюминий қасықта балқытуға бола ма?",["Иә: алюминий 660 °C-та, ал қорғасын 327 °C-та балқиды","Жоқ: алюминий бұрын балқып кетеді","Жоқ: қорғасын мүлдем балқымайды","Иә, бірақ қасық суық болса ғана"],"Алюминийдің балқу температурасы қорғасындікінен жоғары, сондықтан қасық қатты күйінде қалады."]},
+ {a:0, ru:["Почему в мороз −50 °C нельзя пользоваться ртутным термометром?",["Ртуть отвердевает при −39 °C","Ртуть испаряется","Стекло плавится","Ртуть сильно расширяется"],"Ртуть кристаллизуется при −39 °C, ниже этой температуры она твёрдая. В сильный мороз используют спиртовые термометры: спирт отвердевает при −114 °C."],
+       kz:["Неліктен −50 °C аязда сынап термометрін пайдалануға болмайды?",["Сынап −39 °C-та қатаяды","Сынап буланып кетеді","Шыны балқиды","Сынап қатты ұлғаяды"],"Сынап −39 °C-та кристалданады, одан төмен температурада ол қатты күйде болады. Қатты аязда спирт термометрін қолданады: спирт −114 °C-та қатаяды."]},
+ {a:0, ru:["На что расходуется энергия при плавлении кристаллического тела?",["На разрушение кристаллической решётки","На повышение температуры","На увеличение массы","На испарение"],"При температуре плавления энергия идёт на разрушение решётки, а температура не меняется."],
+       kz:["Кристалдық дене балқығанда энергия неге жұмсалады?",["Кристалдық торды бұзуға","Температураны арттыруға","Массаны арттыруға","Булануға"],"Балқу температурасында энергия торды бұзуға жұмсалады, ал температура өзгермейді."]}
+];
+
+let lang="ru";
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const L=()=>T[lang];
+const $=id=>document.getElementById(id);
+const fmt=(x,d=2)=>Number(x).toLocaleString("ru-RU",{maximumFractionDigits:d});
+const SUPS={"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+function sci(x,d=2){ // 340000 -> 3,4·10⁵
+  if(x===0) return "0";
+  const ax=Math.abs(x);
+  if(ax>=0.01 && ax<10000) return fmt(x,3);
+  let e=Math.floor(Math.log10(ax)); let m=x/Math.pow(10,e);
+  if(Math.abs(Math.round(m*10**d)/10**d)>=10){m/=10;e++;}
+  return fmt(m,d)+"·10"+String(e).split("").map(c=>SUPS[c]).join("");
+}
+const subName=s=>s[lang];
+
+/* ---------- i18n ---------- */
+function applyLang(){
+  document.documentElement.lang = lang==="ru"?"ru":"kk";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const v=L()[el.dataset.i18n]; if(typeof v==="string") el.textContent=v;});
+  document.querySelectorAll("[data-i18n-html]").forEach(el=>{el.innerHTML=L()[el.dataset.i18nHtml];});
+  document.querySelectorAll("[data-u]").forEach(el=>{el.textContent=L().u[el.dataset.u];});
+  $("coverTitle").innerHTML=L().titleHTML;
+  $("lang-ru").setAttribute("aria-pressed",lang==="ru"); $("lang-kz").setAttribute("aria-pressed",lang==="kz");
+  buildTables(); fillSelects(); calc(); renderQuiz(); updateStepper(); updateReadouts();
+}
+$("lang-ru").onclick=()=>{lang="ru";store.set("lang",lang);applyLang();};
+$("lang-kz").onclick=()=>{lang="kz";store.set("lang",lang);applyLang();};
+
+function buildTables(){
+  const l=L();
+  const byTm=[...SUB].sort((a,b)=>a.tm-b.tm);
+  $("tmTable").innerHTML=`<thead><tr><th>${l.thSub}</th><th class="n">${l.thTm}</th></tr></thead><tbody>`+
+    byTm.map(s=>`<tr><td>${subName(s)}</td><td class="n">${s.tm<0?"−"+Math.abs(s.tm):s.tm}</td></tr>`).join("")+"</tbody>";
+  const byL=SUB.filter(s=>s.lam).sort((a,b)=>b.lam-a.lam);
+  $("lamTable").innerHTML=`<thead><tr><th>${l.thSub}</th><th class="n">${l.thLam}</th></tr></thead><tbody>`+
+    byL.map(s=>`<tr><td>${subName(s)}</td><td class="n">${sci(s.lam)}</td></tr>`).join("")+"</tbody>";
+  $("refTable").innerHTML=`<thead><tr><th>${l.thSub}</th><th class="n">${l.thTm}</th><th class="n">${l.thLam}</th><th class="n">${l.thC}</th></tr></thead><tbody>`+
+    SUB.filter(s=>s.lam).map(s=>`<tr><td>${subName(s)}</td><td class="n">${s.tm<0?"−"+Math.abs(s.tm):s.tm}</td><td class="n">${sci(s.lam)}</td><td class="n">${s.c}</td></tr>`).join("")+"</tbody>";
+}
+function fillSelects(){
+  const a=$("subst"), b=$("cSub"); const va=a.value||"ice", vb=b.value||"ice";
+  a.innerHTML=SUB.filter(s=>s.sim).map(s=>`<option value="${s.id}">${subName(s)} (t = ${s.tm<0?"−"+Math.abs(s.tm):s.tm} °C)</option>`).join(""); a.value=va;
+  b.innerHTML=SUB.filter(s=>s.lam).map(s=>`<option value="${s.id}">${subName(s)}</option>`).join(""); b.value=vb;
+}
+// lattice dots for svg
+(function(){let h="";for(const y of [50,80,110,140])for(const x of [44,74,104,134,164])h+=`<circle cx="${x}" cy="${y}" r="9"/>`;$("latticeDots").innerHTML=h;})();
+
+/* ---------- theme ---------- */
+const sun='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const moon='<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+function isDark(){const t=document.documentElement.dataset.theme; return t? t==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;}
+function paintThemeBtn(){const b=$("themeBtn"); b.innerHTML=isDark()?sun:moon; b.title=isDark()?"Светлая / Жарық":"Тёмная / Қараңғы";}
+$("themeBtn").onclick=()=>{const t=isDark()?"light":"dark"; document.documentElement.dataset.theme=t; store.set("theme",t); paintThemeBtn(); readColors();};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{paintThemeBtn();readColors();});
+
+/* ---------- steps ---------- */
+const screens=[...document.querySelectorAll("[data-step]")];
+let cur=0;
+function updateStepper(){
+  const l=L(), n=screens.length-1;
+  $("prevBtn").textContent=l.back; $("nextBtn").textContent=l.fwd;
+  $("prevBtn").disabled=cur<=1; $("nextBtn").disabled=cur>=n;
+  $("secName").textContent = cur>0 ? `${l[screens[cur].dataset.sec]} · ${l.stepOf} ${cur}/${n}` : "";
+  const d=$("dots");
+  if(d.children.length!==n){ d.innerHTML=""; for(let i=1;i<=n;i++){const b=document.createElement("button"); b.setAttribute("aria-label",String(i)); b.onclick=()=>showStep(i); d.appendChild(b);} }
+  [...d.children].forEach((b,i)=> i+1===cur ? b.setAttribute("aria-current","step") : b.removeAttribute("aria-current"));
+}
+function showStep(i){
+  cur=Math.max(0,Math.min(screens.length-1,i));
+  screens.forEach((s,k)=>{s.hidden=k!==cur;});
+  $("stepper").hidden = cur===0;
+  if(screens[cur].id==="p-sim") resize();
+  updateStepper(); window.scrollTo({top:0});
+}
+$("startBtn").onclick=()=>showStep(1);
+$("prevBtn").onclick=()=>showStep(cur-1);
+$("nextBtn").onclick=()=>showStep(cur+1);
+document.addEventListener("keydown",e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==="ArrowRight"&&cur>0) showStep(cur+1);
+  if(e.key==="ArrowLeft"&&cur>1) showStep(cur-1);
+});
+
+/* ---------- lab simulation ---------- */
+const bc=$("beaker"), bx=bc.getContext("2d"), gc=$("graph"), gx=gc.getContext("2d");
+let C={}, BW=300, GW=600; const VH=300;
+function readColors(){const s=getComputedStyle(document.documentElement); ["ink","muted","line","surface","surface2","cold","hot","warm","glass","flame","accent"].forEach(k=>C[k]=s.getPropertyValue("--"+k).trim());}
+function sizeCanvas(cv,ctx){const r=cv.getBoundingClientRect(); if(!r.width) return null; const dpr=window.devicePixelRatio||1, sc=r.height/VH; cv.width=r.width*dpr; cv.height=r.height*dpr; ctx.setTransform(dpr*sc,0,0,dpr*sc,0,0); return r.width/sc;}
+function resize(){const a=sizeCanvas(bc,bx), b=sizeCanvas(gc,gx); if(a) BW=a; if(b) GW=b; layoutParticles();}
+window.addEventListener("resize",resize);
+
+let S, m, P, E=0, simT=0, mode="pause", hist=[], speed=1, xMax=60, parts=[];
+function sub(){return SUB.find(s=>s.id===$("subst").value)||SUB[0];}
+function energies(){const s=S; const E1=s.c*m*(s.tm-s.t0), E2=E1+s.lam*m, Emax=E2+s.c2*m*(s.t1-s.tm); return {E1,E2,Emax};}
+function tempOf(e){const {E1,E2}=energies(); if(e<E1) return S.t0+e/(S.c*m); if(e<=E2) return S.tm; return S.tm+(e-E2)/(S.c2*m);}
+function fracOf(e){const {E1,E2}=energies(); return Math.max(0,Math.min(1,(e-E1)/(E2-E1)));}
+function resetSim(){
+  S=sub(); m=+$("mass").value; P=+$("power").value;
+  E=0; simT=0; hist=[{t:0,T:S.t0}];
+  const {Emax}=energies(); speed=(S.c*0.2*(S.tm-S.t0)+S.lam*0.2+S.c2*0.2*(S.t1-S.tm))/(500*22); // full heating of 0.2 kg at 500 W takes ~22 s of real time
+  xMax=niceCeil(Emax/P*1.15);
+  setMode("pause"); layoutParticles(); updateReadouts();
+}
+function niceCeil(x){const p=Math.pow(10,Math.floor(Math.log10(x))); for(const k of [1,1.5,2,2.5,3,4,5,6,8,10]) if(k*p>=x) return k*p; return 10*p;}
+function setMode(md){mode=md; $("bHeat").setAttribute("aria-pressed",md==="heat"); $("bCool").setAttribute("aria-pressed",md==="cool"); $("bPause").setAttribute("aria-pressed",md==="pause");}
+$("bHeat").onclick=()=>setMode("heat"); $("bCool").onclick=()=>setMode("cool"); $("bPause").onclick=()=>setMode("pause");
+$("bReset").onclick=resetSim;
+$("subst").onchange=resetSim; $("mass").oninput=()=>{resetSim();};
+$("power").oninput=()=>{P=+$("power").value; updateReadouts();};
+
+function layoutParticles(){
+  parts=[]; const cols=7, rows=5, gap=22;
+  const left=BW/2-(cols-1)*gap/2, bottom=VH-78;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const hx=left+c*gap, hy=bottom-r*gap;
+    parts.push({hx,hy,x:hx,y:hy,vx:(Math.random()-.5),vy:(Math.random()-.5),u:((r*cols+c)*0.618)%1*0.96+0.02, free:false});
+  }
+}
+function phaseKey(){
+  const {E1,E2}=energies();
+  if(E<E1-1e-6) return "stSolid";
+  if(E>E2+1e-6) return "stLiquid";
+  if(mode==="heat") return "stMelting";
+  if(mode==="cool") return "stCryst";
+  const f=fracOf(E); return f<=0?"stSolid": f>=1?"stLiquid":"stMix";
+}
+function updateReadouts(){
+  if(!S) return; const l=L();
+  $("massOut").textContent=fmt(m,1)+" "+l.u.kg; $("powOut").textContent=fmt(P,0)+" Вт";
+  const Tn=tempOf(E);
+  $("roT").textContent=(Tn<0?"−":"")+fmt(Math.abs(Tn),1)+" °C";
+  $("roQ").textContent=(E>=1e4? sci(E):fmt(E,0))+" "+l.u.J;
+  $("roF").textContent=fmt(fracOf(E)*100,0)+" %";
+  const k=phaseKey(); const cls= k==="stSolid"?"st-solid": k==="stLiquid"?"st-liquid":"st-mid";
+  $("roS").innerHTML=`<span class="state ${cls}">${l[k]}</span>`;
+  $("labNote").textContent=l.note(sci(S.lam*m)+" "+l.u.J, S.tm);
+}
+
+function drawBeaker(){
+  const W=BW, H=VH, ctx=bx; ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=C.surface2; ctx.fillRect(0,0,W,H);
+  const bw=Math.min(200,W*0.8), bl=W/2-bw/2, bt=40, bb=H-60;
+  const f=fracOf(E), Tn=tempOf(E);
+  // liquid fill
+  if(f>0){ const lh=(bb-bt-30)*0.35*f+8; ctx.fillStyle=C.hot; ctx.globalAlpha=.22; ctx.fillRect(bl+4,bb-lh,bw-8,lh); ctx.globalAlpha=1; }
+  // particles
+  const heat=Math.max(0,Math.min(1,(Tn-S.t0)/(S.t1-S.t0)));
+  const liqTop=bb-((bb-bt-30)*0.35*f+8), solidAmp=1+heat*4;
+  for(const p of parts){
+    const free = p.u<f;
+    if(free){
+      if(!p.free){p.free=true; p.vx=(Math.random()-.5)*2; p.vy=(Math.random()-.5)*2;}
+      const sp=0.8+heat*2.2;
+      p.x+=p.vx*sp; p.y+=p.vy*sp;
+      if(p.x<bl+10){p.x=bl+10;p.vx=Math.abs(p.vx);} if(p.x>bl+bw-10){p.x=bl+bw-10;p.vx=-Math.abs(p.vx);}
+      const top=Math.min(liqTop+8,bb-14);
+      if(p.y<top){p.y=top;p.vy=Math.abs(p.vy);} if(p.y>bb-9){p.y=bb-9;p.vy=-Math.abs(p.vy);}
+      if(Math.random()<0.03){p.vx+=(Math.random()-.5);p.vy+=(Math.random()-.5);const n=Math.hypot(p.vx,p.vy)||1;p.vx/=n;p.vy/=n;}
+    } else {
+      p.free=false;
+      const tx=p.hx+(Math.random()-.5)*solidAmp, ty=p.hy+(Math.random()-.5)*solidAmp;
+      p.x+= (tx-p.x)*0.25; p.y+=(ty-p.y)*0.25;
+    }
+    ctx.fillStyle= free? C.hot : C.cold;
+    ctx.beginPath(); ctx.arc(p.x,p.y,8,0,7); ctx.fill();
+  }
+  // beaker glass
+  ctx.strokeStyle=C.glass; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(bl,bt); ctx.lineTo(bl,bb); ctx.lineTo(bl+bw,bb); ctx.lineTo(bl+bw,bt); ctx.stroke();
+  // thermometer
+  const tx=bl+bw-22; ctx.strokeStyle=C.muted; ctx.lineWidth=2; ctx.strokeRect(tx-4,bt-25,8,bb-bt-20);
+  const th=(bb-bt-40)*heat; ctx.fillStyle=C.hot; ctx.fillRect(tx-2,bb-48-th,4,th+3); ctx.beginPath(); ctx.arc(tx,bb-44,7,0,7); ctx.fill();
+  // heater / cooler
+  const pw=P/1000;
+  ctx.fillStyle=C.muted; ctx.fillRect(W/2-50,H-40,100,10);
+  if(mode==="heat"){ const t=performance.now()/120; for(let i=-2;i<=2;i++){const fh=14+pw*22+Math.sin(t+i)*4; ctx.fillStyle=C.flame; ctx.beginPath(); ctx.moveTo(W/2+i*18-8,H-42); ctx.quadraticCurveTo(W/2+i*18,H-42-fh*1.4,W/2+i*18+8,H-42); ctx.fill(); ctx.fillStyle=C.hot; ctx.beginPath(); ctx.moveTo(W/2+i*18-4,H-42); ctx.quadraticCurveTo(W/2+i*18,H-42-fh*0.8,W/2+i*18+4,H-42); ctx.fill();} }
+  if(mode==="cool"){ ctx.strokeStyle=C.cold; ctx.lineWidth=3; for(let i=-2;i<=2;i++){const cx=W/2+i*30, cy=H-14; for(let a=0;a<3;a++){const an=a*Math.PI/3; ctx.beginPath(); ctx.moveTo(cx-Math.cos(an)*9,cy-Math.sin(an)*9); ctx.lineTo(cx+Math.cos(an)*9,cy+Math.sin(an)*9); ctx.stroke();}} }
+  ctx.fillStyle=C.ink; ctx.font="700 17px 'PT Sans', sans-serif"; ctx.textAlign="left"; ctx.fillText(subName(S)+", "+fmt(m,1)+" "+L().u.kg,10,24);
+}
+function drawGraph(){
+  const W=GW, H=VH, ctx=gx; ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=C.surface2; ctx.fillRect(0,0,W,H);
+  const l=54, r=W-18, t=26, b=H-40;
+  const yMin=S.t0-((S.t1-S.t0)*0.05), yMax=S.t1+((S.t1-S.t0)*0.05);
+  const X=x=>l+(x/xMax)*(r-l), Y=y=>b-(y-yMin)/(yMax-yMin)*(b-t);
+  // grid + ticks
+  ctx.font="500 14px 'JetBrains Mono', monospace"; ctx.fillStyle=C.muted; ctx.strokeStyle=C.line; ctx.lineWidth=1;
+  const ys=niceCeil((S.t1-S.t0)/5);
+  for(let y=Math.ceil(yMin/ys)*ys;y<=yMax;y+=ys){ctx.beginPath();ctx.moveTo(l,Y(y));ctx.lineTo(r,Y(y));ctx.stroke(); ctx.textAlign="right"; ctx.fillText((y<0?"−":"")+Math.abs(Math.round(y)),l-6,Y(y)+5);}
+  const xs=niceCeil(xMax/6);
+  for(let x=0;x<=xMax+1e-9;x+=xs){ctx.beginPath();ctx.moveTo(X(x),t);ctx.lineTo(X(x),b);ctx.stroke(); ctx.textAlign="center"; ctx.fillText(fmt(x,0),X(x),b+18);}
+  // axes
+  ctx.strokeStyle=C.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(l,t-8); ctx.lineTo(l,b); ctx.lineTo(r+6,b); ctx.stroke();
+  ctx.fillStyle=C.ink; ctx.font="700 15px 'PT Sans', sans-serif"; ctx.textAlign="left"; ctx.fillText(L().graphY,l+6,t-8); ctx.textAlign="right"; ctx.fillText(L().graphX,r,b-8);
+  // melting line
+  ctx.setLineDash([6,5]); ctx.strokeStyle=C.warm; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(l,Y(S.tm)); ctx.lineTo(r,Y(S.tm)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=C.warm; ctx.textAlign="right"; ctx.font="700 14px 'PT Sans', sans-serif"; ctx.fillText(L().tmLbl+" = "+S.tm+" °C",r-4,Y(S.tm)-8);
+  // curve colored by phase
+  ctx.lineWidth=4; ctx.lineCap="round";
+  for(let i=1;i<hist.length;i++){const a=hist[i-1], c=hist[i]; const mid=(a.T+c.T)/2; ctx.strokeStyle= Math.abs(mid-S.tm)<1e-6? C.warm : (mid<S.tm? C.cold:C.hot); ctx.beginPath(); ctx.moveTo(X(a.t),Y(a.T)); ctx.lineTo(X(c.t),Y(c.T)); ctx.stroke();}
+  const last=hist[hist.length-1]; ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(X(last.t),Y(last.T),6,0,7); ctx.fill();
+}
+let lastTs=null, roTimer=0;
+function loop(ts){
+  if(lastTs===null) lastTs=ts; const dt=Math.min(.05,(ts-lastTs)/1000); lastTs=ts;
+  const visible=!$("p-sim").hidden;
+  if(S && mode!=="pause"){
+    const {Emax}=energies();
+    const step=dt*speed;  // sim seconds
+    const before=E;
+    E += (mode==="heat"?1:-1)*P*step;
+    E=Math.max(0,Math.min(Emax,E));
+    if(E!==before){ simT+=step; hist.push({t:simT,T:tempOf(E)}); if(simT>xMax*0.97) xMax=niceCeil(simT*1.3); if(hist.length>4000) hist=hist.filter((_,i)=>i%2===0); }
+    roTimer+=dt; if(roTimer>0.1){roTimer=0; updateReadouts();}
+  }
+  if(visible && S){drawBeaker(); drawGraph();}
+  requestAnimationFrame(loop);
+}
+
+/* ---------- calculator ---------- */
+function calc(){
+  const l=L(), u=l.u, md=$("cMode").value, s=SUB.find(x=>x.id===$("cSub").value)||SUB[0];
+  $("fM").hidden = md==="mass"; $("fT").hidden = md!=="heatmelt"; $("fQ").hidden = md!=="mass";
+  const out=$("solution");
+  const mv=+$("cM").value, mu=+$("cMu").value, M=mv*mu, mName=$("cMu").selectedOptions[0].textContent;
+  const t0=+$("cT").value, qv=+$("cQ").value, qu=+$("cQu").value, Qv=qv*qu, qName=$("cQu").selectedOptions[0].textContent;
+  const lamS=`λ = ${sci(s.lam)} ${u.J}/${u.kg}`, tmS=`t = ${s.tm} °C`;
+  const name=subName(s);
+  if(md==="melt"){
+    if(!(mv>0)) return out.innerHTML=`<span class="err">${l.errIn}</span>`;
+    const Qr=s.lam*M;
+    out.innerHTML=`<div><b>${l.given}</b> ${name}; m = ${fmt(mv,3)} ${mName}${mu!==1?` = ${fmt(M,4)} ${u.kg}`:""}; ${lamS}</div>
+      <div><b>${l.sol}</b> Q = λ·m = ${sci(s.lam)} ${u.J}/${u.kg} · ${fmt(M,4)} ${u.kg} = ${sci(Qr)} ${u.J}</div>
+      <div class="ans">${l.ans} Q = ${sci(Qr)} ${u.J}${Qr>=1000?` (${fmt(Qr/1000,1)} ${u.kJ})`:""}</div>`;
+  } else if(md==="heatmelt"){
+    if(!(mv>0)||isNaN(t0)) return out.innerHTML=`<span class="err">${l.errIn}</span>`;
+    if(t0>=s.tm) return out.innerHTML=`<span class="err">${l.errT} (${tmS})</span>`;
+    const Q1=s.c*M*(s.tm-t0), Q2=s.lam*M, Qt=Q1+Q2;
+    const ts=v=>(v<0?"(−"+fmt(Math.abs(v),2)+")":fmt(v,2));
+    out.innerHTML=`<div><b>${l.given}</b> ${name}; m = ${fmt(mv,3)} ${mName}${mu!==1?` = ${fmt(M,4)} ${u.kg}`:""}; t₀ = ${t0<0?"−"+fmt(-t0,2):fmt(t0,2)} °C; ${l.tmSub} = ${s.tm} °C; c = ${s.c} ${u.J}/(${u.kg}·°C); ${lamS}</div>
+      <div><b>${l.sol}</b></div>
+      <div>Q₁ = c·m·(${l.tmSub} − t₀) = ${s.c} · ${fmt(M,4)} · (${s.tm} − ${ts(t0)}) = ${sci(Q1)} ${u.J}</div>
+      <div>Q₂ = λ·m = ${sci(s.lam)} · ${fmt(M,4)} = ${sci(Q2)} ${u.J}</div>
+      <div>Q = Q₁ + Q₂ = ${sci(Q1)} + ${sci(Q2)} = ${sci(Qt)} ${u.J}</div>
+      <div class="ans">${l.ans} Q = ${sci(Qt)} ${u.J}${Qt>=1000?` (${fmt(Qt/1000,1)} ${u.kJ})`:""}</div>`;
+  } else {
+    if(!(qv>0)) return out.innerHTML=`<span class="err">${l.errIn}</span>`;
+    const Mr=Qv/s.lam;
+    out.innerHTML=`<div><b>${l.given}</b> ${name}; Q = ${fmt(qv,3)} ${qName}${qu!==1?` = ${sci(Qv)} ${u.J}`:""}; ${lamS}</div>
+      <div><b>${l.sol}</b> m = Q / λ = ${sci(Qv)} ${u.J} / ${sci(s.lam)} ${u.J}/${u.kg} = ${fmt(Mr,4)} ${u.kg}</div>
+      <div class="ans">${l.ans} m = ${fmt(Mr,3)} ${u.kg}${Mr<1?` (${fmt(Mr*1000,1)} ${u.g})`:""}</div>`;
+  }
+}
+["cMode","cSub","cM","cMu","cT","cQ","cQu"].forEach(id=>$(id).addEventListener("input",calc));
+
+/* ---------- quiz ---------- */
+let qi=0, score=0, answered=null;
+function renderQuiz(){
+  const l=L(), box=$("quizBox");
+  if(qi>=Q.length){
+    box.innerHTML=`<span class="eyebrow">${l.sec4}</span><h2>${l.res}</h2><div class="score">${score} ${l.of} ${Q.length}</div><p>${l.grade(score,Q.length)}</p><div><button class="btn" id="qAgain">${l.again}</button></div>`;
+    $("qAgain").onclick=()=>{qi=0;score=0;answered=null;renderQuiz();};
+    return;
+  }
+  const q=Q[qi], [text,opts,expl]=q[lang];
+  let h=`<span class="eyebrow">${l.sec4}</span><div class="qtop"><span class="qnum">${l.qOf} ${qi+1} / ${Q.length}</span><div class="progress"><i style="width:${(qi/Q.length)*100}%"></i></div></div><p class="qtext">${text}</p><div class="opts">`;
+  opts.forEach((o,i)=>{let cls=""; if(answered!==null){ if(i===q.a) cls="right"; else if(i===answered) cls="wrong"; }
+    h+=`<button class="opt ${cls}" data-i="${i}" ${answered!==null?"disabled":""}><span class="k">${"АБВГ"[i]}</span><span>${o}</span></button>`;});
+  h+="</div>";
+  if(answered!==null){const ok=answered===q.a; h+=`<div class="feedback ${ok?"good":"bad"}"><b>${ok?l.right:l.wrong}</b>${expl}</div><div><button class="btn" id="qNext">${qi===Q.length-1?l.finish:l.next}</button></div>`;}
+  box.innerHTML=h;
+  box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{answered=+b.dataset.i; if(answered===q.a) score++; renderQuiz(); $("qNext").focus();});
+  if(answered!==null) $("qNext").onclick=()=>{qi++; answered=null; renderQuiz();};
+}
+
+
+/* ---------- problem question + functional literacy ---------- */
+Object.assign(T.ru,{
+ sec0:"Проблемный вопрос", secFG:"Функциональная грамотность", hyp:"Выскажите гипотезу: как вы думаете?",
+ showAns:"Показать ответ", hideAns:"Скрыть ответ", hideNote:"Запомните свой ответ — вернёмся к нему в конце урока.",
+ backToProb:"Вернуться к проблемному вопросу", check:"Проверить", sample:"Показать образец ответа", showSol:"Показать решение",
+ task:"Задание", correct:"Верно!", incorrect:"Неверно, попробуйте ещё раз.", fgTag:"Функциональная грамотность · задание в формате PISA",
+ writeHere:"Напишите ответ здесь…", solLbl:"Решение:", sampleLbl:"Образец ответа:"
+});
+Object.assign(T.kz,{
+ sec0:"Проблемалық сұрақ", secFG:"Функционалдық сауаттылық", hyp:"Болжам айтыңыз: сіз қалай ойлайсыз?",
+ showAns:"Жауапты көрсету", hideAns:"Жауапты жасыру", hideNote:"Жауабыңызды есте сақтаңыз — сабақтың соңында оған ораламыз.",
+ backToProb:"Проблемалық сұраққа оралу", check:"Тексеру", sample:"Үлгі жауапты көрсету", showSol:"Шешуін көрсету",
+ task:"Тапсырма", correct:"Дұрыс!", incorrect:"Қате, тағы көріңіз.", fgTag:"Функционалдық сауаттылық · PISA форматындағы тапсырма",
+ writeHere:"Жауабыңызды осында жазыңыз…", solLbl:"Шешуі:", sampleLbl:"Үлгі жауап:"
+});
+const PROB = {
+ "ru": {
+  "q": "Почему, когда идёт снег или замерзает река, на улице часто становится теплее, а весной, когда тает снег, — прохладнее?",
+  "sit": "Это давно заметили в народе: «снег идёт — к потеплению».",
+  "opts": [
+   "Это просто совпадение погоды",
+   "При кристаллизации воды выделяется теплота, а при таянии снега — поглощается",
+   "Снег, как одеяло, греет воздух",
+   "Не знаю"
+  ],
+  "answer": "<b>Всё дело в теплоте плавления.</b> При кристаллизации (замерзании воды, образовании снежинок) выделяется теплота Q = λm, и воздух нагревается. При таянии снега, наоборот, теплота забирается из окружающего воздуха — становится прохладнее."
+ },
+ "kz": {
+  "q": "Неліктен қар жауғанда немесе өзен қатқанда сыртта жиі жылынады, ал көктемде қар ерігенде салқындайды?",
+  "sit": "Мұны халық ертеден байқаған: «қар жауса — жылиды».",
+  "opts": [
+   "Бұл жай ғана ауа райының кездейсоқтығы",
+   "Су кристалданғанда жылу бөлінеді, ал қар ерігенде жылу жұтылады",
+   "Қар көрпе сияқты ауаны жылытады",
+   "Білмеймін"
+  ],
+  "answer": "<b>Мұның бәрі балқу жылуына байланысты.</b> Кристалданғанда (су қатқанда, қар ұлпалары түзілгенде) Q = λm жылу бөлінеді де, ауа жылиды. Қар ерігенде, керісінше, жылу қоршаған ауадан алынады — салқындайды."
+ }
+};
+const FG = {
+ "ru": {
+  "title": "Сумка-холодильник в поход",
+  "context": [
+   "Семья Айдара летом едет на природу на два дня. Чтобы продукты не испортились, их везут в сумке-холодильнике.",
+   "Есть два варианта: <b>А</b> — положить 2 кг льда при 0 °C; <b>Б</b> — положить 2 кг холодной воды при 0 °C в бутылках.",
+   "Через стенки сумки внутрь поступает около 20 кДж теплоты в час (условные данные). Продукты хранятся хорошо, пока в сумке не теплее +10 °C."
+  ],
+  "head": [
+   "Величина",
+   "Значение"
+  ],
+  "rows": [
+   [
+    "Удельная теплота плавления льда λ",
+    "3,4·10⁵ Дж/кг"
+   ],
+   [
+    "Удельная теплоёмкость воды c",
+    "4200 Дж/(кг·°C)"
+   ],
+   [
+    "Поступает теплоты за 1 ч",
+    "20 кДж"
+   ],
+   [
+    "Масса льда или воды m",
+    "2 кг"
+   ]
+  ],
+  "tasks": [
+   {
+    "type": "num",
+    "q": "Сколько теплоты нужно, чтобы растаял весь лёд (вариант А)? Ответ дайте в кДж.",
+    "unit": "кДж",
+    "ans": 680,
+    "sol": "Q = λm = 3,4·10⁵ Дж/кг · 2 кг = 6,8·10⁵ Дж = 680 кДж."
+   },
+   {
+    "type": "num",
+    "q": "Сколько часов лёд будет удерживать в сумке температуру 0 °C?",
+    "unit": "ч",
+    "ans": 34,
+    "sol": "t = 680 кДж : 20 кДж/ч = 34 ч."
+   },
+   {
+    "type": "num",
+    "q": "Вариант Б: за сколько часов вода нагреется от 0 °C до +10 °C?",
+    "unit": "ч",
+    "ans": 4.2,
+    "tol": 0.05,
+    "sol": "Q = cmΔt = 4200 · 2 · 10 = 84 000 Дж = 84 кДж; t = 84 кДж : 20 кДж/ч = 4,2 ч."
+   },
+   {
+    "type": "choice",
+    "q": "Лёд в сумке растаял наполовину. Какая температура в сумке рядом со льдом?",
+    "opts": [
+     "0 °C",
+     "+5 °C",
+     "−5 °C",
+     "+10 °C"
+    ],
+    "a": 0,
+    "expl": "Пока лёд не растаял полностью, температура смеси льда и воды остаётся 0 °C: вся поступающая теплота идёт на плавление."
+   },
+   {
+    "type": "choice",
+    "q": "Какой вариант лучше и почему?",
+    "opts": [
+     "А — лёд: при плавлении он поглощает много теплоты, оставаясь при 0 °C",
+     "Б — вода: её удобнее пить",
+     "Одинаково: масса ведь одна и та же",
+     "Б — вода тяжелее льда"
+    ],
+    "a": 0,
+    "expl": "Лёд продержит холод около 34 ч, а вода — только около 4 ч. Причина — большая удельная теплота плавления льда."
+   },
+   {
+    "type": "open",
+    "q": "Предложите два способа дольше сохранить продукты холодными. Объясните их с точки зрения физики.",
+    "sample": "1) Взять больше льда: Q = λm, при большей массе лёд поглотит больше теплоты и будет таять дольше. 2) Уменьшить поступление теплоты: держать сумку в тени, реже открывать, обернуть плотной тканью. Можно заранее заморозить бутылки с водой — это тот же лёд."
+   }
+  ]
+ },
+ "kz": {
+  "title": "Жорыққа арналған тоңазытқыш-сөмке",
+  "context": [
+   "Айдардың отбасы жазда екі күнге табиғат аясына шығады. Азық-түлік бұзылмас үшін оны тоңазытқыш-сөмкеде алып жүреді.",
+   "Екі нұсқа бар: <b>А</b> — 0 °C-тағы 2 кг мұз салу; <b>Б</b> — бөтелкелерге құйылған 0 °C-тағы 2 кг суық су салу.",
+   "Сөмкенің қабырғалары арқылы ішке сағатына шамамен 20 кДж жылу өтеді (шартты деректер). Сөмке ішінде +10 °C-тан жылы болмаса, азық жақсы сақталады."
+  ],
+  "head": [
+   "Шама",
+   "Мәні"
+  ],
+  "rows": [
+   [
+    "Мұздың меншікті балқу жылуы λ",
+    "3,4·10⁵ Дж/кг"
+   ],
+   [
+    "Судың меншікті жылусыйымдылығы c",
+    "4200 Дж/(кг·°C)"
+   ],
+   [
+    "1 сағатта өтетін жылу",
+    "20 кДж"
+   ],
+   [
+    "Мұздың немесе судың массасы m",
+    "2 кг"
+   ]
+  ],
+  "tasks": [
+   {
+    "type": "num",
+    "q": "Барлық мұз еруі үшін қанша жылу қажет (А нұсқасы)? Жауапты кДж-мен беріңіз.",
+    "unit": "кДж",
+    "ans": 680,
+    "sol": "Q = λm = 3,4·10⁵ Дж/кг · 2 кг = 6,8·10⁵ Дж = 680 кДж."
+   },
+   {
+    "type": "num",
+    "q": "Мұз сөмкеде 0 °C температураны неше сағат ұстап тұрады?",
+    "unit": "сағ",
+    "ans": 34,
+    "sol": "t = 680 кДж : 20 кДж/сағ = 34 сағ."
+   },
+   {
+    "type": "num",
+    "q": "Б нұсқасы: су 0 °C-тан +10 °C-қа дейін неше сағатта қызады?",
+    "unit": "сағ",
+    "ans": 4.2,
+    "tol": 0.05,
+    "sol": "Q = cmΔt = 4200 · 2 · 10 = 84 000 Дж = 84 кДж; t = 84 кДж : 20 кДж/сағ = 4,2 сағ."
+   },
+   {
+    "type": "choice",
+    "q": "Сөмкедегі мұздың жартысы еріді. Мұздың жанындағы температура қандай?",
+    "opts": [
+     "0 °C",
+     "+5 °C",
+     "−5 °C",
+     "+10 °C"
+    ],
+    "a": 0,
+    "expl": "Мұз толық ерігенше мұз бен су қоспасының температурасы 0 °C болып қалады: келетін барлық жылу балқуға жұмсалады."
+   },
+   {
+    "type": "choice",
+    "q": "Қай нұсқа жақсы және неліктен?",
+    "opts": [
+     "А — мұз: балқығанда 0 °C-та қала отырып, көп жылу жұтады",
+     "Б — су: оны ішуге ыңғайлы",
+     "Бірдей: масса бірдей ғой",
+     "Б — су мұздан ауыр"
+    ],
+    "a": 0,
+    "expl": "Мұз суықты шамамен 34 сағат, ал су небәрі 4 сағатқа жуық сақтайды. Себебі — мұздың меншікті балқу жылуы үлкен."
+   },
+   {
+    "type": "open",
+    "q": "Азықты ұзағырақ суық сақтаудың екі тәсілін ұсыныңыз. Оларды физика тұрғысынан түсіндіріңіз.",
+    "sample": "1) Мұзды көбірек алу: Q = λm, масса көп болса, мұз көбірек жылу жұтып, ұзағырақ ериді. 2) Ішке өтетін жылуды азайту: сөмкені көлеңкеде ұстау, сирек ашу, қалың матамен орау. Сондай-ақ су құйылған бөтелкелерді алдын ала мұздатуға болады — бұл да мұз."
+   }
+  ]
+ }
+};
+let probPick=null, probOpen=false;
+function renderProb(){
+  const l=L(), p=PROB[lang], box=$("probBox");
+  box.innerHTML=`<span class="tag">? ${l.sec0}</span>
+   <p class="bigq">${p.q}</p>
+   <p class="sit">${p.sit}</p>
+   <p><b>${l.hyp}</b></p>
+   <div class="hyps">${p.opts.map((o,i)=>`<button class="hyp" data-i="${i}" aria-pressed="${probPick===i}"><span class="k">${"АБВГ"[i]}</span><span>${o}</span></button>`).join("")}</div>
+   ${probOpen?`<div class="reveal">${p.answer}</div>`:`<p class="muted">${l.hideNote}</p>`}
+   <div><button class="btn ${probOpen?"ghost":""}" id="probBtn">${probOpen?l.hideAns:l.showAns}</button></div>`;
+  box.querySelectorAll(".hyp").forEach(b=>b.onclick=()=>{probPick=+b.dataset.i; renderProb();});
+  $("probBtn").onclick=()=>{probOpen=!probOpen; renderProb();};
+}
+const fgState={};
+function renderFG(){
+  const l=L(), f=FG[lang], box=$("fgBox");
+  let h=`<span class="eyebrow">${l.fgTag}</span><h2>${f.title}</h2>
+   <div class="ctx">${f.context.map(p=>`<p>${p}</p>`).join("")}
+   <div style="overflow-x:auto"><table><thead><tr>${f.head.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${f.rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>
+   <div class="tasks">`;
+  f.tasks.forEach((t,i)=>{
+    const st=fgState[i]||(fgState[i]={});
+    h+=`<div class="task"><span class="tn">${l.task} ${i+1}</span><p class="tq">${t.q}</p>`;
+    if(t.type==="num"){
+      h+=`<div class="ansrow"><input type="number" step="any" id="fgIn${i}" value="${st.val??""}" aria-label="${l.task} ${i+1}"><span class="unit">${t.unit}</span><button class="btn" data-check="${i}">${l.check}</button><button class="btn ghost" data-sol="${i}">${l.showSol}</button></div>`;
+      if(st.res==="good") h+=`<div class="fb good"><b>${l.correct}</b> ${t.sol}</div>`;
+      else if(st.res==="bad") h+=`<div class="fb bad">${l.incorrect}</div>`;
+      if(st.sol && st.res!=="good") h+=`<div class="fb info"><b>${l.solLbl}</b> ${t.sol}</div>`;
+    } else if(t.type==="choice"){
+      h+=`<div class="opts">${t.opts.map((o,j)=>{let c=""; if(st.pick!=null){ if(j===t.a) c="right"; else if(j===st.pick) c="wrong";} return `<button class="opt ${c}" data-task="${i}" data-j="${j}" ${st.pick!=null?"disabled":""}><span class="k">${"АБВГ"[j]}</span><span>${o}</span></button>`;}).join("")}</div>`;
+      if(st.pick!=null) h+=`<div class="fb ${st.pick===t.a?"good":"bad"}"><b>${st.pick===t.a?l.correct:l.incorrect.split(",")[0]+"."}</b> ${t.expl}</div>`;
+    } else {
+      h+=`<textarea id="fgTa${i}" placeholder="${l.writeHere}">${st.text??""}</textarea><div><button class="btn ghost" data-sample="${i}">${l.sample}</button></div>`;
+      if(st.sample) h+=`<div class="fb info"><b>${l.sampleLbl}</b> ${t.sample}</div>`;
+    }
+    h+=`</div>`;
+  });
+  box.innerHTML=h+"</div>";
+  f.tasks.forEach((t,i)=>{
+    const inp=$("fgIn"+i); if(inp) inp.oninput=()=>{fgState[i].val=inp.value;};
+    const ta=$("fgTa"+i); if(ta) ta.oninput=()=>{fgState[i].text=ta.value;};
+  });
+  box.querySelectorAll("[data-check]").forEach(b=>b.onclick=()=>{const i=+b.dataset.check, t=FG[lang].tasks[i], v=parseFloat(String($("fgIn"+i).value).replace(",","."));
+    fgState[i].val=$("fgIn"+i).value; fgState[i].res = (!isNaN(v) && Math.abs(v-t.ans)<=Math.max(t.tol??0.02*Math.abs(t.ans),1e-9))?"good":"bad"; renderFG();});
+  box.querySelectorAll("[data-sol]").forEach(b=>b.onclick=()=>{fgState[+b.dataset.sol].sol=true; renderFG();});
+  box.querySelectorAll("[data-task]").forEach(b=>b.onclick=()=>{fgState[+b.dataset.task].pick=+b.dataset.j; renderFG();});
+  box.querySelectorAll("[data-sample]").forEach(b=>b.onclick=()=>{fgState[+b.dataset.sample].sample=!fgState[+b.dataset.sample].sample; renderFG();});
+}
+const _applyLang0=applyLang;
+applyLang=function(){_applyLang0(); renderProb(); renderFG(); renderQuizExtra();};
+const _renderQuiz0=renderQuiz;
+function renderQuizExtra(){
+  if(qi>=Q.length && !$("qBack")){
+    const d=document.createElement("div"); d.innerHTML=`<button class="btn ghost" id="qBack">${L().backToProb}</button>`;
+    $("quizBox").appendChild(d);
+    $("qBack").onclick=()=>{probOpen=true; renderProb(); showStep(screens.indexOf($("p-prob")));};
+  }
+}
+renderQuiz=function(){_renderQuiz0(); renderQuizExtra();};
+
+/* ---------- init ---------- */
+const savedTheme=store.get("theme"); if(savedTheme) document.documentElement.dataset.theme=savedTheme;
+const savedLang=store.get("lang"); if(savedLang==="kz"||savedLang==="ru") lang=savedLang;
+paintThemeBtn(); readColors();
+fillSelects(); resetSim();
+applyLang();
+showStep(0);
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
